@@ -207,6 +207,39 @@
                     }" />
                 </when>
             </choose>
+            <!-- Prepare the tokens correlation info -->
+			<choose>
+				<when condition="@(context.Response.StatusCode == 200)">
+					<set-variable name="tokens" value="@{
+                        var responseBody = context.Response.Body.As<JObject>(preserveContent: true);
+
+                        return new JObject(
+                            new JProperty("apim-traceparent", context.Request.Headers.GetValueOrDefault("traceparent",string.Empty)),
+                            new JProperty("aoai-correlation", context.Response.Headers.GetValueOrDefault("apim-request-id",string.Empty)),
+                            new JProperty("prompt_tokens", responseBody["usage"]["prompt_tokens"]),
+                            new JProperty("completion_tokens", responseBody["usage"]["completion_tokens"]),
+                            new JProperty("total_tokens", responseBody["usage"]["total_tokens"]),
+                            new JProperty("aoai-statusCode", context.Response.StatusCode)
+                        ).ToString();
+                    }" />
+				</when>
+				<otherwise>
+					<set-variable name="tokens" value="@{
+                        return new JObject(
+                            new JProperty("apim-traceparent", context.Request.Headers.GetValueOrDefault("traceparent",string.Empty)),
+                            new JProperty("aoai-correlation", context.Response.Headers.GetValueOrDefault("apim-request-id",string.Empty)),
+                            new JProperty("prompt_tokens", 0),
+                            new JProperty("completion_tokens", 0),
+                            new JProperty("total_tokens", 0),
+                            new JProperty("aoai-statusCode", context.Response.StatusCode)
+                        ).ToString();
+                        }" />
+				</otherwise>
+			</choose>
+			<!--Trace the tokens correlation-->
+			<trace source="Global APIM Policy" severity="information">
+				<message>@(context.Variables.GetValueOrDefault<string>("tokens", "none"))</message>
+			</trace>
         </retry>
     </backend>
     <outbound>
