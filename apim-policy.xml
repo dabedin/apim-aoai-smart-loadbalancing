@@ -216,6 +216,7 @@
                         return new JObject(
                             new JProperty("apim-traceparent", context.Request.Headers.GetValueOrDefault("traceparent",string.Empty)),
                             new JProperty("aoai-correlation", context.Response.Headers.GetValueOrDefault("apim-request-id",string.Empty)),
+			    new JProperty("product_id", context.Product.Name),
                             new JProperty("prompt_tokens", responseBody["usage"]["prompt_tokens"]),
                             new JProperty("completion_tokens", responseBody["usage"]["completion_tokens"]),
                             new JProperty("total_tokens", responseBody["usage"]["total_tokens"]),
@@ -228,6 +229,7 @@
                         return new JObject(
                             new JProperty("apim-traceparent", context.Request.Headers.GetValueOrDefault("traceparent",string.Empty)),
                             new JProperty("aoai-correlation", context.Response.Headers.GetValueOrDefault("apim-request-id",string.Empty)),
+			    new JProperty("product_id", context.Product.Name),
                             new JProperty("prompt_tokens", 0),
                             new JProperty("completion_tokens", 0),
                             new JProperty("total_tokens", 0),
