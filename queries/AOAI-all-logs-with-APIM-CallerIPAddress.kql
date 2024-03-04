@@ -1,0 +1,83 @@
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.COGNITIVESERVICES"
+| where Category == "RequestResponse"
+| extend properties = parse_json(properties_s)
+| extend APIOperationName = case(
+                                OperationName == "Creates a completion for the provided prompt, parameters and chosen model.",
+                                "completions",
+                                OperationName == "Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.",
+                                "embeddings",
+                                OperationName == "Creates a completion for the chat message",
+                                "chat/completions",
+                                OperationName == "TBD1",
+                                "extensions/chat/completions",
+                                OperationName == "ImageGenerations_Create",
+                                "images/generations",
+                                OperationName == "TBD2",
+                                "images/generations:submit",
+                                OperationName == "TBD3",
+                                "audio/transactions",
+                                OperationName == "TBD4",
+                                "audio/translations",
+                                OperationName
+                            )
+| where APIOperationName !has "_List"
+| project
+    TimeGenerated,
+    Resource,
+    modelDeploymentName=properties.modelDeploymentName,
+    modelName=properties.modelName,
+    APIOperationName,
+    OperationName,
+    DurationMs,
+    CallerIPAddress,
+    AOAICorrelationId=CorrelationId,
+    //Location=location_s,
+    Location=Tenant_s,
+    apiName=properties.apiName,
+    modelVersion=properties.modelVersion,
+    //objectId=properties.objectId,
+    requestLength=properties.requestLength,
+    requestTime=properties.requestTime,
+    responseLength=properties.responseLength,
+    responseTime=properties.responseTime,
+    streamType=properties.streamType
+| join kind=inner (
+    ApiManagementGatewayLogs
+    | where IsRequestSuccess == true and isnotempty(TraceRecords)
+    | mv-expand TraceRecords
+    | extend message = parse_json(tostring(TraceRecords.message))
+    | extend AOAIResponseCode =  tostring(message["aoai-statusCode"])
+    | extend ApimTraceParent =  tostring(message["apim-traceparent"])
+    | extend AOAICorrelationId =  tostring(message["aoai-correlation"])
+    | extend PromptTokens =  toint(message["prompt_tokens"])
+    | extend CompletionTokens =  toint(message["completion_tokens"])
+    | extend TotalTokens =  toint(message["total_tokens"])
+    | project 
+        ApimSubscriptionId, 
+        CallerIpAddress,
+        AOAICorrelationId,
+        PromptTokens, 
+        CompletionTokens,
+        TotalTokens    )
+    on AOAICorrelationId
+| project
+    TimeGenerated,
+    Resource,
+    modelDeploymentName,
+    modelName,
+    APIOperationName,
+    OperationName,
+    DurationMs,
+    CallerIPAddress = CallerIpAddress,
+    //Location=location_s,
+    Location,
+    apiName,
+    modelVersion,
+    //objectId=properties.objectId,
+    requestLength,
+    requestTime,
+    responseLength,
+    responseTime,
+    streamType
+| sort by TimeGenerated desc

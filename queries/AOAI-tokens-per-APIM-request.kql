@@ -30,4 +30,5 @@ ApiManagementGatewayLogs
     PromptTokens, 
     CompletionTokens,
     TotalTokens
+| summarize sum(PromptTokens), sum(CompletionTokens) by bin(TimeGenerated, 1m), ApimSubscriptionId
 | order by TimeGenerated desc

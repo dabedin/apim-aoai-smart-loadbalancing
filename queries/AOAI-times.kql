@@ -1,0 +1,5 @@
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.COGNITIVESERVICES"
+| where Category == "RequestResponse"
+| project TimeGenerated, DurationMs
+| render timechart 
