@@ -1,5 +1,5 @@
 ApiManagementGatewayLogs
-| where IsRequestSuccess == true and isnotempty(TraceRecords)
+| where isnotempty(TraceRecords)
 | mv-expand TraceRecords
 | extend message = parse_json(tostring(TraceRecords.message))
 | extend AOAIResponseCode =  tostring(message["aoai-statusCode"])
