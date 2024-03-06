@@ -209,7 +209,7 @@
             </choose>
             <!-- Prepare the tokens correlation info -->
 			<choose>
-				<when condition="@(context.Response.StatusCode == 200)">
+				<when condition="@(context.Response != null && context.Response.StatusCode == 200)">
 					<set-variable name="tokens" value="@{
                         var responseBody = context.Response.Body.As<JObject>(preserveContent: true);
 
@@ -227,11 +227,11 @@
 					<set-variable name="tokens" value="@{
                         return new JObject(
                             new JProperty("apim-traceparent", context.Request.Headers.GetValueOrDefault("traceparent",string.Empty)),
-                            new JProperty("aoai-correlation", context.Response.Headers.GetValueOrDefault("apim-request-id",string.Empty)),
+                            new JProperty("aoai-correlation", context.Response != null ? context.Response.Headers.GetValueOrDefault("apim-request-id",string.Empty) : string.Empty),
                             new JProperty("prompt_tokens", 0),
                             new JProperty("completion_tokens", 0),
                             new JProperty("total_tokens", 0),
-                            new JProperty("aoai-statusCode", context.Response.StatusCode)
+                            new JProperty("aoai-statusCode", context.Response != null ? context.Response.StatusCode : 0)
                         ).ToString();
                         }" />
 				</otherwise>
