@@ -120,7 +120,7 @@
               "allowCustom": true
             },
             "value": {
-              "durationMs": 1209600000
+              "durationMs": 14400000
             }
           },
           {
@@ -225,7 +225,7 @@
                   "id": "4b7cdcbf-612f-4014-89a5-4920e1c7d3f6",
                   "cellValue": "selectedTab",
                   "linkTarget": "parameter",
-                  "linkLabel": "API",
+                  "linkLabel": "APIM perspective",
                   "subTarget": "API",
                   "style": "link"
                 }
@@ -4507,7 +4507,7 @@
                         },
                         "queryType": 0,
                         "resourceType": "microsoft.operationalinsights/workspaces",
-                        "value": "unlimited"
+                        "value": null
                       }
                     ],
                     "style": "pills",
@@ -5787,624 +5787,156 @@
                         "name": "text - 6"
                       },
                       {
-                        "type": 10,
+                        "type": 3,
                         "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
+                          "version": "KqlItem/1.0",
+                          "query": "ApiManagementGatewayLogs\r\n| where isnotempty(TraceRecords)\r\n| where ApimSubscriptionId == iif('{ApimSubscriptionId}' == '', ApimSubscriptionId, '{ApimSubscriptionId}')\r\n| where ProductId == iif('{ProductId}' == '', ProductId, '{ProductId}')\r\n| mv-expand TraceRecords\r\n| extend message = parse_json(tostring(TraceRecords.message))\r\n| extend AOAIResponseCode =  tostring(message[\"aoai-statusCode\"])\r\n| extend APIMTraceParent =  tostring(message[\"apim-traceparent\"])\r\n| extend AOAICorrelationId =  tostring(message[\"aoai-correlation\"])\r\n| extend PromptTokens =  toint(message[\"prompt_tokens\"])\r\n| extend CompletionTokens =  toint(message[\"completion_tokens\"])\r\n| extend TotalTokens =  toint(message[\"total_tokens\"])\r\n| join kind=inner (\r\nAzureDiagnostics\r\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\r\n| where Category == \"RequestResponse\"\r\n| extend properties = parse_json(properties_s)\r\n| extend deploymentName=properties.modelDeploymentName\r\n| extend modelName=properties.modelName\r\n)\r\non $left.AOAICorrelationId == $right.CorrelationId\r\n| project \r\n    TimeGenerated, \r\n    ProductId,\r\n    ApimSubscriptionId,\r\n    CallerIpAddress,\r\n    deploymentName,\r\n    modelName,\r\n    PromptTokens, \r\n    CompletionTokens,\r\n    TotalTokens,\r\n    ApiId,\r\n    Resource,\r\n    OperationId,\r\n    Method,\r\n    Url, \r\n    IsRequestSuccess, \r\n    ResponseCode, \r\n    AOAIResponseCode, \r\n    AOAICorrelationId,\r\n    APIMTraceParent\r\n| summarize sum(TotalTokens) by bin(TimeGenerated, 1m), tostring(modelName), Resource",
                           "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
-                          "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-TokenTransaction",
-                              "aggregation": 1,
-                              "splitBy": "FeatureName"
-                            }
-                          ],
                           "title": "Processed Inference Tokens by Model Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
+                          "timeContextFromParameter": "TimeRange",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "crossComponentResources": [
+                            "{Workspace}"
+                          ],
+                          "visualization": "timechart",
+                          "chartSettings": {
+                            "group": "*",
+                            "createOtherGroup": null,
+                            "showLegend": true
                           }
                         },
                         "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Processed Inference Tokens by Model Name",
+                        "name": "Processed Inference Tokens by Model Name",
                         "styleSettings": {
                           "margin": "0 0 20px 0"
                         }
                       },
                       {
-                        "type": 10,
+                        "type": 3,
                         "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
+                          "version": "KqlItem/1.0",
+                          "query": "ApiManagementGatewayLogs\r\n| where isnotempty(TraceRecords)\r\n| where ApimSubscriptionId == iif('{ApimSubscriptionId}' == '', ApimSubscriptionId, '{ApimSubscriptionId}')\r\n| where ProductId == iif('{ProductId}' == '', ProductId, '{ProductId}')\r\n| mv-expand TraceRecords\r\n| extend message = parse_json(tostring(TraceRecords.message))\r\n| extend AOAIResponseCode =  tostring(message[\"aoai-statusCode\"])\r\n| extend APIMTraceParent =  tostring(message[\"apim-traceparent\"])\r\n| extend AOAICorrelationId =  tostring(message[\"aoai-correlation\"])\r\n| extend PromptTokens =  toint(message[\"prompt_tokens\"])\r\n| extend CompletionTokens =  toint(message[\"completion_tokens\"])\r\n| extend TotalTokens =  toint(message[\"total_tokens\"])\r\n| join kind=inner (\r\nAzureDiagnostics\r\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\r\n| where Category == \"RequestResponse\"\r\n| extend properties = parse_json(properties_s)\r\n| extend deploymentName=properties.modelDeploymentName\r\n| extend modelName=properties.modelName\r\n)\r\non $left.AOAICorrelationId == $right.CorrelationId\r\n| project \r\n    TimeGenerated, \r\n    ProductId,\r\n    ApimSubscriptionId,\r\n    CallerIpAddress,\r\n    deploymentName,\r\n    modelName,\r\n    PromptTokens, \r\n    CompletionTokens,\r\n    TotalTokens,\r\n    ApiId,\r\n    Resource,\r\n    OperationId,\r\n    Method,\r\n    Url, \r\n    IsRequestSuccess, \r\n    ResponseCode, \r\n    AOAIResponseCode, \r\n    AOAICorrelationId,\r\n    APIMTraceParent\r\n| summarize sum(TotalTokens) by bin(TimeGenerated, 1m), tostring(deploymentName), Resource",
                           "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
-                          "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-TokenTransaction",
-                              "aggregation": 1,
-                              "splitBy": "ModelDeploymentName"
-                            }
-                          ],
                           "title": "Processed Inference Tokens by Model Deployment Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
+                          "timeContextFromParameter": "TimeRange",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "crossComponentResources": [
+                            "{Workspace}"
+                          ],
+                          "visualization": "timechart",
+                          "chartSettings": {
+                            "group": "*",
+                            "createOtherGroup": null,
+                            "showLegend": true
                           }
                         },
                         "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Processed Inference Tokens by Model Deployment Name",
+                        "name": "Processed Inference Tokens by Model Deployment Name",
                         "styleSettings": {
                           "margin": "0 0 20px 0"
                         }
                       },
                       {
-                        "type": 10,
+                        "type": 3,
                         "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
+                          "version": "KqlItem/1.0",
+                          "query": "ApiManagementGatewayLogs\r\n| where isnotempty(TraceRecords)\r\n| where ApimSubscriptionId == iif('{ApimSubscriptionId}' == '', ApimSubscriptionId, '{ApimSubscriptionId}')\r\n| where ProductId == iif('{ProductId}' == '', ProductId, '{ProductId}')\r\n| mv-expand TraceRecords\r\n| extend message = parse_json(tostring(TraceRecords.message))\r\n| extend AOAIResponseCode =  tostring(message[\"aoai-statusCode\"])\r\n| extend APIMTraceParent =  tostring(message[\"apim-traceparent\"])\r\n| extend AOAICorrelationId =  tostring(message[\"aoai-correlation\"])\r\n| extend PromptTokens =  toint(message[\"prompt_tokens\"])\r\n| extend CompletionTokens =  toint(message[\"completion_tokens\"])\r\n| extend TotalTokens =  toint(message[\"total_tokens\"])\r\n| join kind=inner (\r\nAzureDiagnostics\r\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\r\n| where Category == \"RequestResponse\"\r\n| extend properties = parse_json(properties_s)\r\n| extend deploymentName=properties.modelDeploymentName\r\n| extend modelName=properties.modelName\r\n)\r\non $left.AOAICorrelationId == $right.CorrelationId\r\n| project \r\n    TimeGenerated, \r\n    ProductId,\r\n    ApimSubscriptionId,\r\n    CallerIpAddress,\r\n    modelName,\r\n    PromptTokens, \r\n    CompletionTokens,\r\n    TotalTokens,\r\n    ApiId,\r\n    Resource,\r\n    OperationId,\r\n    Method,\r\n    Url, \r\n    IsRequestSuccess, \r\n    ResponseCode, \r\n    AOAIResponseCode, \r\n    AOAICorrelationId,\r\n    APIMTraceParent\r\n| summarize sum(CompletionTokens) by bin(TimeGenerated, 1m), tostring(modelName), Resource",
                           "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
-                          "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-ProcessedPromptTokens",
-                              "aggregation": 1,
-                              "splitBy": "FeatureName"
-                            }
-                          ],
-                          "title": "Processed Prompt Tokens by Model Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
-                          }
-                        },
-                        "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Processed Prompt Tokens by Model Name",
-                        "styleSettings": {
-                          "margin": "0 0 20px 0"
-                        }
-                      },
-                      {
-                        "type": 10,
-                        "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
-                          "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
-                          "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-ProcessedPromptTokens",
-                              "aggregation": 1
-                            }
-                          ],
-                          "title": "Processed Prompt Tokens by Model Deployment Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
-                          }
-                        },
-                        "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Processed Prompt Tokens by Model Deployment Name",
-                        "styleSettings": {
-                          "margin": "0 0 20px 0"
-                        }
-                      },
-                      {
-                        "type": 10,
-                        "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
-                          "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
-                          "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-GeneratedTokens",
-                              "aggregation": 1,
-                              "splitBy": "FeatureName"
-                            }
-                          ],
                           "title": "Generate Completion Tokens by Model Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
+                          "timeContextFromParameter": "TimeRange",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "crossComponentResources": [
+                            "{Workspace}"
+                          ],
+                          "visualization": "timechart",
+                          "chartSettings": {
+                            "xAxis": "TimeGenerated",
+                            "group": "*",
+                            "createOtherGroup": null,
+                            "showLegend": true
                           }
                         },
                         "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Generate Completion Tokens by Model Name",
+                        "name": "Generate Completion Tokens by Model Name",
                         "styleSettings": {
                           "margin": "0 0 20px 0"
                         }
                       },
                       {
-                        "type": 10,
+                        "type": 3,
                         "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
+                          "version": "KqlItem/1.0",
+                          "query": "ApiManagementGatewayLogs\r\n| where isnotempty(TraceRecords)\r\n| where ApimSubscriptionId == iif('{ApimSubscriptionId}' == '', ApimSubscriptionId, '{ApimSubscriptionId}')\r\n| where ProductId == iif('{ProductId}' == '', ProductId, '{ProductId}')\r\n| mv-expand TraceRecords\r\n| extend message = parse_json(tostring(TraceRecords.message))\r\n| extend AOAIResponseCode =  tostring(message[\"aoai-statusCode\"])\r\n| extend APIMTraceParent =  tostring(message[\"apim-traceparent\"])\r\n| extend AOAICorrelationId =  tostring(message[\"aoai-correlation\"])\r\n| extend PromptTokens =  toint(message[\"prompt_tokens\"])\r\n| extend CompletionTokens =  toint(message[\"completion_tokens\"])\r\n| extend TotalTokens =  toint(message[\"total_tokens\"])\r\n| join kind=inner (\r\nAzureDiagnostics\r\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\r\n| where Category == \"RequestResponse\"\r\n| extend properties = parse_json(properties_s)\r\n| extend deploymentName=properties.modelDeploymentName\r\n| extend modelName=properties.modelName\r\n)\r\non $left.AOAICorrelationId == $right.CorrelationId\r\n| project \r\n    TimeGenerated, \r\n    ProductId,\r\n    ApimSubscriptionId,\r\n    CallerIpAddress,\r\n    deploymentName,\r\n    modelName,\r\n    PromptTokens, \r\n    CompletionTokens,\r\n    TotalTokens,\r\n    ApiId,\r\n    Resource,\r\n    OperationId,\r\n    Method,\r\n    Url, \r\n    IsRequestSuccess, \r\n    ResponseCode, \r\n    AOAIResponseCode, \r\n    AOAICorrelationId,\r\n    APIMTraceParent\r\n| summarize sum(CompletionTokens) by bin(TimeGenerated, 1m), tostring(deploymentName), Resource",
                           "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
-                          "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-GeneratedTokens",
-                              "aggregation": 1,
-                              "splitBy": "ModelDeploymentName"
-                            }
-                          ],
                           "title": "Generate Completion Tokens by Model Deployment Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
+                          "timeContextFromParameter": "TimeRange",
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "crossComponentResources": [
+                            "{Workspace}"
+                          ],
+                          "visualization": "timechart",
+                          "chartSettings": {
+                            "group": "*",
+                            "createOtherGroup": null,
+                            "showLegend": true
                           }
                         },
                         "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Generate Completion Tokens by Model Deployment Name",
+                        "name": "Generate Completion Tokens by Model Deployment Name",
                         "styleSettings": {
                           "margin": "0 0 20px 0"
                         }
                       },
                       {
-                        "type": 10,
+                        "type": 3,
                         "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
+                          "version": "KqlItem/1.0",
+                          "query": "ApiManagementGatewayLogs\r\n| where isnotempty(TraceRecords)\r\n| where ApimSubscriptionId == iif('{ApimSubscriptionId}' == '', ApimSubscriptionId, '{ApimSubscriptionId}')\r\n| where ProductId == iif('{ProductId}' == '', ProductId, '{ProductId}')\r\n| mv-expand TraceRecords\r\n| extend message = parse_json(tostring(TraceRecords.message))\r\n| extend AOAIResponseCode =  tostring(message[\"aoai-statusCode\"])\r\n| extend APIMTraceParent =  tostring(message[\"apim-traceparent\"])\r\n| extend AOAICorrelationId =  tostring(message[\"aoai-correlation\"])\r\n| extend PromptTokens =  toint(message[\"prompt_tokens\"])\r\n| extend CompletionTokens =  toint(message[\"completion_tokens\"])\r\n| extend TotalTokens =  toint(message[\"total_tokens\"])\r\n| join kind=inner (\r\nAzureDiagnostics\r\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\r\n| where Category == \"RequestResponse\"\r\n| extend properties = parse_json(properties_s)\r\n| extend modelName=properties.modelName\r\n)\r\non $left.AOAICorrelationId == $right.CorrelationId\r\n| project \r\n    TimeGenerated, \r\n    ProductId,\r\n    ApimSubscriptionId,\r\n    CallerIpAddress,\r\n    modelName,\r\n    PromptTokens, \r\n    CompletionTokens,\r\n    TotalTokens,\r\n    ApiId,\r\n    Resource,\r\n    OperationId,\r\n    Method,\r\n    Url, \r\n    IsRequestSuccess, \r\n    ResponseCode, \r\n    AOAIResponseCode, \r\n    AOAICorrelationId,\r\n    APIMTraceParent\r\n| summarize sum(PromptTokens) by bin(TimeGenerated, 1m), Resource, tostring(modelName)",
                           "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
+                          "title": "Processed Prompt Tokens by Model Name",
                           "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-ActiveTokens",
-                              "aggregation": 1,
-                              "splitBy": "ModelName"
-                            }
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "crossComponentResources": [
+                            "{Workspace}"
                           ],
-                          "title": "Active Tokens by Model Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
+                          "visualization": "timechart",
+                          "chartSettings": {
+                            "showLegend": true
                           }
                         },
                         "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Active Tokens by Model Name",
+                        "name": "Processed Prompt Tokens by Model Name",
                         "styleSettings": {
                           "margin": "0 0 20px 0"
                         }
                       },
                       {
-                        "type": 10,
+                        "type": 3,
                         "content": {
-                          "chartId": "workbook44a06433-82ec-44c1-8731-83e8a22cd995",
-                          "version": "MetricsItem/2.0",
+                          "version": "KqlItem/1.0",
+                          "query": "ApiManagementGatewayLogs\r\n| where isnotempty(TraceRecords)\r\n| where ApimSubscriptionId == iif('{ApimSubscriptionId}' == '', ApimSubscriptionId, '{ApimSubscriptionId}')\r\n| where ProductId == iif('{ProductId}' == '', ProductId, '{ProductId}')\r\n| mv-expand TraceRecords\r\n| extend message = parse_json(tostring(TraceRecords.message))\r\n| extend AOAIResponseCode =  tostring(message[\"aoai-statusCode\"])\r\n| extend APIMTraceParent =  tostring(message[\"apim-traceparent\"])\r\n| extend AOAICorrelationId =  tostring(message[\"aoai-correlation\"])\r\n| extend PromptTokens =  toint(message[\"prompt_tokens\"])\r\n| extend CompletionTokens =  toint(message[\"completion_tokens\"])\r\n| extend TotalTokens =  toint(message[\"total_tokens\"])\r\n| join kind=inner (\r\nAzureDiagnostics\r\n| where ResourceProvider == \"MICROSOFT.COGNITIVESERVICES\"\r\n| where Category == \"RequestResponse\"\r\n| extend properties = parse_json(properties_s)\r\n| extend deploymentName=properties.modelDeploymentName\r\n| extend modelName=properties.modelName\r\n)\r\non $left.AOAICorrelationId == $right.CorrelationId\r\n| project \r\n    TimeGenerated, \r\n    ProductId,\r\n    ApimSubscriptionId,\r\n    CallerIpAddress,\r\n    deploymentName,\r\n    modelName,\r\n    PromptTokens, \r\n    CompletionTokens,\r\n    TotalTokens,\r\n    ApiId,\r\n    Resource,\r\n    OperationId,\r\n    Method,\r\n    Url, \r\n    IsRequestSuccess, \r\n    ResponseCode, \r\n    AOAIResponseCode, \r\n    AOAICorrelationId,\r\n    APIMTraceParent\r\n| summarize sum(PromptTokens) by bin(TimeGenerated, 1m), tostring(deploymentName), Resource",
                           "size": 0,
-                          "chartType": 1,
-                          "resourceType": "microsoft.cognitiveservices/accounts",
-                          "metricScope": 0,
-                          "resourceParameter": "Resources",
-                          "resourceIds": [
-                            "{Resources}"
-                          ],
+                          "title": "Processed Prompt Tokens by Model Deployment Name",
                           "timeContextFromParameter": "TimeRange",
-                          "timeContext": {
-                            "durationMs": 1209600000
-                          },
-                          "metrics": [
-                            {
-                              "namespace": "microsoft.cognitiveservices/accounts",
-                              "metric": "microsoft.cognitiveservices/accounts-Azure OpenAI  Usage-ActiveTokens",
-                              "aggregation": 1,
-                              "splitBy": "ModelDeploymentName"
-                            }
+                          "queryType": 0,
+                          "resourceType": "microsoft.operationalinsights/workspaces",
+                          "crossComponentResources": [
+                            "{Workspace}"
                           ],
-                          "title": "Active Tokens by Model Deployment Name",
-                          "showOpenInMe": true,
-                          "showCreateAlertRule": true,
-                          "gridSettings": {
-                            "formatters": [
-                              {
-                                "columnMatch": "Subscription",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "Name",
-                                "formatter": 13,
-                                "formatOptions": {
-                                  "linkTarget": "Resource"
-                                }
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "formatter": 5
-                              },
-                              {
-                                "columnMatch": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "formatter": 1,
-                                "numberFormat": {
-                                  "unit": 0,
-                                  "options": null
-                                }
-                              }
-                            ],
-                            "rowLimit": 10000,
-                            "labelSettings": [
-                              {
-                                "columnId": "Subscription",
-                                "label": "Subscription"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests",
-                                "label": "Azure OpenAI Requests (Sum)"
-                              },
-                              {
-                                "columnId": "microsoft.cognitiveservices/accounts-Azure OpenAI  HTTP Requests-AzureOpenAIRequests Timeline",
-                                "label": "Azure OpenAI Requests Timeline"
-                              }
-                            ]
+                          "visualization": "timechart",
+                          "chartSettings": {
+                            "group": "*",
+                            "createOtherGroup": null,
+                            "showLegend": true
                           }
                         },
                         "customWidth": "50",
-                        "showPin": false,
-                        "name": "Metric - Active Tokens by Model Deployment Name",
+                        "name": "Processed Prompt Tokens by Model Deployment Name",
                         "styleSettings": {
                           "margin": "0 0 20px 0"
                         }
