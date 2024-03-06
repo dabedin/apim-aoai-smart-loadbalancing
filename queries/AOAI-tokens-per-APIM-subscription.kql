@@ -1,0 +1,37 @@
+ApiManagementGatewayLogs
+| where isnotempty(TraceRecords)
+| mv-expand TraceRecords
+| extend message = parse_json(tostring(TraceRecords.message))
+| extend AOAIResponseCode =  tostring(message["aoai-statusCode"])
+| extend APIMTraceParent =  tostring(message["apim-traceparent"])
+| extend AOAICorrelationId =  tostring(message["aoai-correlation"])
+| extend PromptTokens =  toint(message["prompt_tokens"])
+| extend CompletionTokens =  toint(message["completion_tokens"])
+| extend TotalTokens =  toint(message["total_tokens"])
+| join kind=inner (
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.COGNITIVESERVICES"
+| where Category == "RequestResponse"
+| extend properties = parse_json(properties_s)
+| extend modelName=properties.modelName
+)
+on $left.AOAICorrelationId == $right.CorrelationId
+| project 
+    TimeGenerated, 
+    ProductId,
+    ApimSubscriptionId,
+    CallerIpAddress,
+    modelName,
+    PromptTokens, 
+    CompletionTokens,
+    TotalTokens,
+    ApiId, 
+    OperationId,
+    Method,
+    Url, 
+    IsRequestSuccess, 
+    ResponseCode, 
+    AOAIResponseCode, 
+    AOAICorrelationId,
+    APIMTraceParent
+| summarize sum(TotalTokens) by ApimSubscriptionId, tostring(modelName)

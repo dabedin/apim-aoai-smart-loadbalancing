@@ -1,0 +1,27 @@
+ApiManagementGatewayLogs
+| where isnotempty(TraceRecords)
+| mv-expand TraceRecords
+| extend message = parse_json(tostring(TraceRecords.message))
+| extend AOAIResponseCode =  tostring(message["aoai-statusCode"])
+| extend APIMTraceParent =  tostring(message["apim-traceparent"])
+| extend AOAICorrelationId =  tostring(message["aoai-correlation"])
+| extend PromptTokens =  toint(message["prompt_tokens"])
+| extend CompletionTokens =  toint(message["completion_tokens"])
+| extend TotalTokens =  toint(message["total_tokens"])
+| project 
+    TimeGenerated, 
+    ProductId,
+    ApimSubscriptionId, 
+    CallerIpAddress,
+    PromptTokens, 
+    CompletionTokens,
+    TotalTokens,
+    ApiId, 
+    OperationId,
+    Method,
+    Url, 
+    IsRequestSuccess, 
+    ResponseCode, 
+    AOAIResponseCode, 
+    AOAICorrelationId,
+    APIMTraceParent

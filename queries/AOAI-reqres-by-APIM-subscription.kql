@@ -1,0 +1,24 @@
+AzureDiagnostics
+| where ResourceProvider == "MICROSOFT.COGNITIVESERVICES"
+| where Category == "RequestResponse"
+| extend properties = parse_json(properties_s)
+| extend modelName=properties.modelName
+| join kind=inner (
+ApiManagementGatewayLogs
+| where isnotempty(TraceRecords)
+| mv-expand TraceRecords
+| extend message = parse_json(tostring(TraceRecords.message))
+| extend APIM = tostring(split(_ResourceId, "/")[-1])
+| extend AOAICorrelationId =  tostring(message["aoai-correlation"])
+| project 
+    TimeGenerated,
+    APIM,
+    CallerIpAddress,
+    CorrelationId, 
+    AOAICorrelationId, 
+    ApimSubscriptionId,
+    ProductId
+ )
+on $left.CorrelationId == $right.AOAICorrelationId
+| summarize count(modelName) by tostring(modelName),  OperationName, ApimSubscriptionId
+| sort by tostring(modelName) asc
