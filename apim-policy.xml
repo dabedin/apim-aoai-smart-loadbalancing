@@ -209,7 +209,7 @@
             </choose>
             <!-- Prepare the tokens correlation info -->
 			<choose>
-				<when condition="@(context.Response != null && context.Response.StatusCode == 200)">
+				<when condition="@(context.Response != null && context.Response.StatusCode == 200 && context.Response.Headers.GetValueOrDefault("Content-Type","") != "text/event-stream")">
 					<set-variable name="tokens" value="@{
                         var responseBody = context.Response.Body.As<JObject>(preserveContent: true);
 
